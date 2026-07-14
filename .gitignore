@@ -34,3 +34,8 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# PocketBase
+/pocketbase
+/pocketbase.exe
+/pb_data
