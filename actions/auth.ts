@@ -45,4 +45,14 @@ async function login(
     redirect("/dashboard");
 }
 
-export { login };
+async function logout() {
+    const { pb, commit } = await createActionPB();
+
+    pb.authStore.clear();
+
+    await commit();
+
+    redirect("/login");
+}
+
+export { login, logout };

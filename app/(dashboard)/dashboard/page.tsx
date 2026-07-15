@@ -1,3 +1,5 @@
+import { logout } from "@/actions/auth";
+import { Button } from "@/components/ui/button";
 import { createServerPB } from "@/lib/server/pocketbase";
 
 async function DashboardPage() {
@@ -10,6 +12,9 @@ async function DashboardPage() {
         <>
             Name: {pb.authStore.record?.name}
             {/*  */}
+            <form action={logout}>
+                <Button type="submit">Log out</Button>
+            </form>
         </>
     );
 }

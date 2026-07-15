@@ -5,7 +5,7 @@ const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL;
 if (!pbUrl) throw new Error("PocketBase URL environment variable is missing.");
 
 async function createServerPB() {
-    const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL!);
+    const pb = new PocketBase(pbUrl);
 
     const cookieStore = await cookies();
 
@@ -23,24 +23,27 @@ async function createServerPB() {
 }
 
 async function createActionPB() {
-    const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL!);
+    const pb = new PocketBase(pbUrl);
 
     const cookieStore = await cookies();
 
     pb.authStore.loadFromCookie(cookieStore.toString());
 
     async function commit() {
-        const cookie = pb.authStore.exportToCookie();
-
-        const value = cookie.match(/pb_auth=([^;]+)/)?.[1];
-
-        if (value) {
-            cookieStore.set("pb_auth", value, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                path: "/",
-            });
+        if (pb.authStore.isValid) {
+            cookieStore.set(
+                "pb_auth",
+                JSON.stringify({
+                    token: pb.authStore.token,
+                    record: pb.authStore.record,
+                }),
+                {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    path: "/",
+                }
+            );
         } else {
             cookieStore.delete("pb_auth");
         }
