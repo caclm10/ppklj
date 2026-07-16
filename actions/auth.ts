@@ -27,7 +27,7 @@ async function login(
             .collection("users")
             .authWithPassword(payload.email, payload.password);
 
-        await commit();
+        commit();
     } catch (error) {
         if (error instanceof ClientResponseError) {
             return {
@@ -45,14 +45,23 @@ async function login(
     redirect("/dashboard");
 }
 
-async function logout() {
-    const { pb, commit } = await createActionPB();
+async function logout(): Promise<{ success: boolean; message?: string }> {
+    try {
+        const { pb, commit } = await createActionPB();
 
-    pb.authStore.clear();
+        pb.authStore.clear();
 
-    await commit();
+        commit();
 
-    redirect("/login");
+        return { success: true };
+    } catch (error) {
+        console.log("error in logout:", error);
+
+        return {
+            success: false,
+            message: "Terjadi kesalahan di internal server.",
+        };
+    }
 }
 
 export { login, logout };

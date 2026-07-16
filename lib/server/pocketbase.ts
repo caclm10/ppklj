@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import PocketBase from "pocketbase";
 
 const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL;
@@ -29,7 +30,7 @@ async function createActionPB() {
 
     pb.authStore.loadFromCookie(cookieStore.toString());
 
-    async function commit() {
+    function commit() {
         if (pb.authStore.isValid) {
             cookieStore.set(
                 "pb_auth",
@@ -55,4 +56,14 @@ async function createActionPB() {
     };
 }
 
-export { createServerPB, createActionPB };
+async function requireAuth() {
+    const pb = await createServerPB();
+
+    if (!pb.authStore.isValid) {
+        redirect("/login");
+    }
+
+    return pb;
+}
+
+export { createServerPB, createActionPB, requireAuth };
