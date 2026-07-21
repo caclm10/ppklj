@@ -1,23 +1,11 @@
 import type { FormErrors } from "@/schemas/action";
 import * as z from "zod";
 
-const maintenanceTypeValues = ["update", "perbaikan", "lainnya"] as const;
-
-const assetUpdateValues = ["status", "firmware", "notes"] as const;
-
-const createMaintenanceSchema = z.object({
+const maintenanceSchema = z.object({
     assetId: z.string({ error: "Aset tidak valid." }),
     date: z
         .string({ error: "Tanggal tidak valid." })
         .min(1, { error: "Tanggal harus diisi." }),
-    type: z.enum(maintenanceTypeValues, {
-        error: "Tipe maintenance tidak valid.",
-    }),
-    typeOther: z
-        .string({ error: "Tipe lainnya tidak valid." })
-        .trim()
-        .optional()
-        .or(z.literal("")),
     description: z
         .string({ error: "Deskripsi tidak valid." })
         .trim()
@@ -39,26 +27,9 @@ const createMaintenanceSchema = z.object({
         .trim()
         .optional()
         .or(z.literal("")),
-    updateNotes: z.boolean().optional(),
-    newNotes: z
-        .string({ error: "Catatan tidak valid." })
-        .trim()
-        .optional()
-        .or(z.literal("")),
 });
 
-const maintenanceSchemaWithConditional = createMaintenanceSchema.refine(
-    (data) => {
-        if (data.type !== "lainnya") return true;
-        return Boolean(data.typeOther && data.typeOther.trim() !== "");
-    },
-    {
-        message: "Tipe lainnya harus diisi.",
-        path: ["typeOther"],
-    }
-);
-
-type CreateMaintenanceInput = z.infer<typeof createMaintenanceSchema>;
+type CreateMaintenanceInput = z.infer<typeof maintenanceSchema>;
 type CreateMaintenanceResponse = {
     success: boolean;
     message?: string;
@@ -73,9 +44,4 @@ export type {
     CreateMaintenanceResponse,
 };
 
-export {
-    createMaintenanceSchema,
-    maintenanceSchemaWithConditional,
-    maintenanceTypeValues,
-    assetUpdateValues,
-};
+export { maintenanceSchema };

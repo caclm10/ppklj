@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    restart: unless-stopped
+    container_name: ppklj-app
+    networks:
+      - ppklj
+    env_file:
+      - .env.production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - pocketbase
+
+  pocketbase:
+    build:
+      context: .
+      dockerfile: ./docker/pocketbase/Dockerfile
+    ports:
+      - "8090:8090"
+    container_name: ppklj-pocketbase
+    volumes:
+      - ./pb_data:/pb/pb_data
+    networks:
+      - ppklj
+
+networks:
+  ppklj:

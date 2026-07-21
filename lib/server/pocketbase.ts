@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import PocketBase from "pocketbase";
 
-const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL;
+const pbUrl = process.env.POCKETBASE_URL;
 if (!pbUrl) throw new Error("PocketBase URL environment variable is missing.");
 
 async function createServerPB() {

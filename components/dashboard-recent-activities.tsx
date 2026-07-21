@@ -74,7 +74,6 @@ function DashboardRecentActivities({
                                 <TableRow>
                                     <TableHead>Tanggal</TableHead>
                                     <TableHead>Aset</TableHead>
-                                    <TableHead>Tipe</TableHead>
                                     <TableHead>Deskripsi</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -89,13 +88,8 @@ function DashboardRecentActivities({
                                                 maintenance.asset_snapshot
                                             )}
                                         </TableCell>
-                                        <TableCell className="capitalize">
-                                            {maintenance.type === "lainnya"
-                                                ? maintenance.type_other || "Lainnya"
-                                                : String(maintenance.type || "-")}
-                                        </TableCell>
-                                        <TableCell className="max-w-[200px] truncate text-muted-foreground">
-                                            {stripHtml(maintenance.description) ||
+                                        <TableCell className="max-w-[250px] truncate text-muted-foreground">
+                                            {stripHtml(maintenance.notes) ||
                                                 "-"}
                                         </TableCell>
                                     </TableRow>
@@ -129,28 +123,38 @@ function DashboardRecentActivities({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {mutations.map((mutation) => (
-                                    <TableRow key={mutation.id}>
-                                        <TableCell className="whitespace-nowrap">
-                                            {formatDate(mutation.date)}
-                                        </TableCell>
-                                        <TableCell className="font-medium">
-                                            {getAssetName(
-                                                mutation.asset_snapshot
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {String(
-                                                mutation.from_office_name || "-"
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {String(
-                                                mutation.to_office_name || "-"
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {mutations.map((mutation) => {
+                                    const updates = mutation.asset_updates
+                                        ? (mutation.asset_updates as Record<
+                                              string,
+                                              unknown
+                                          >)
+                                        : {};
+
+                                    return (
+                                        <TableRow key={mutation.id}>
+                                            <TableCell className="whitespace-nowrap">
+                                                {formatDate(mutation.date)}
+                                            </TableCell>
+                                            <TableCell className="font-medium">
+                                                {getAssetName(
+                                                    mutation.asset_snapshot
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {String(
+                                                    updates.from_office_name ||
+                                                        "-"
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {String(
+                                                    updates.office_name || "-"
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     )}

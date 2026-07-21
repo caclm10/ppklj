@@ -121,8 +121,7 @@ async function DashboardPage() {
 
     let assets: RecordModel[] = [];
     let offices: RecordModel[] = [];
-    let maintenances: RecordModel[] = [];
-    let mutations: RecordModel[] = [];
+    let activities: RecordModel[] = [];
 
     try {
         assets = await pb.collection("assets").getFullList({
@@ -141,20 +140,15 @@ async function DashboardPage() {
     }
 
     try {
-        maintenances = await pb.collection("asset_maintenances").getFullList({
+        activities = await pb.collection("asset_activities").getFullList({
             sort: "-date",
         });
     } catch (error) {
-        console.error("Failed to fetch maintenances:", error);
+        console.error("Failed to fetch activities:", error);
     }
 
-    try {
-        mutations = await pb.collection("asset_mutations").getFullList({
-            sort: "-date",
-        });
-    } catch (error) {
-        console.error("Failed to fetch mutations:", error);
-    }
+    const maintenances = activities.filter((a) => a.type === "maintenance");
+    const mutations = activities.filter((a) => a.type === "mutasi");
 
     const officeNameById = new Map<string, string>();
     for (const office of offices) {

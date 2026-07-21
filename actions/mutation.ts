@@ -90,13 +90,11 @@ async function createMutation(
 
         const pb = await requireAuth();
         const data = validation.data;
+        const user = pb.authStore.record;
 
         const asset = await pb.collection("assets").getOne(data.assetId, {
-            expand: "device_model_id,office_id,room_id,to_office_id,to_room_id",
+            expand: "device_model_id,office_id,room_id",
         });
-
-        const fromOfficeId = firstId(asset.office_id);
-        const fromRoomId = firstId(asset.room_id);
 
         const toOffice = await pb.collection("offices").getOne(data.toOfficeId);
         const toOfficeName = toOffice.nama || "";
@@ -120,25 +118,32 @@ async function createMutation(
             room_id: data.toRoomId ? [data.toRoomId] : [],
         });
 
-        const record = await pb.collection("asset_mutations").create({
+        const fromOfficeId = firstId(asset.office_id);
+        const fromRoomId = firstId(asset.room_id);
+
+        await pb.collection("asset_activities").create({
             asset_id: data.assetId,
             asset_snapshot: buildSnapshot(asset),
+            asset_updates: {
+                office_id: data.toOfficeId,
+                office_name: toOfficeName,
+                room_id: data.toRoomId || "",
+                room_name: toRoomName,
+                from_office_id: fromOfficeId,
+                from_office_name: officeName(asset),
+                from_room_id: fromRoomId,
+                from_room_name: roomName(asset),
+            },
             date: data.date,
-            from_office_id: fromOfficeId,
-            from_office_name: officeName(asset),
-            from_room_id: fromRoomId,
-            from_room_name: roomName(asset),
-            to_office_id: data.toOfficeId,
-            to_office_name: toOfficeName,
-            to_room_id: data.toRoomId || "",
-            to_room_name: toRoomName,
+            type: "mutasi",
             notes: data.notes || undefined,
+            performed_by: user?.name || user?.email || undefined,
         });
 
         return {
             success: true,
             data: {
-                id: record.id,
+                id: data.assetId,
             },
         };
     } catch (error) {

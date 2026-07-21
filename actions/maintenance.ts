@@ -5,7 +5,7 @@ import { ClientResponseError } from "pocketbase";
 
 import { requireAuth } from "@/lib/server/pocketbase";
 import {
-    maintenanceSchemaWithConditional,
+    maintenanceSchema,
     type CreateMaintenanceInput,
     type CreateMaintenanceResponse,
 } from "@/schemas/maintenance";
@@ -79,7 +79,7 @@ async function createMaintenance(
     payload: CreateMaintenanceInput
 ): Promise<CreateMaintenanceResponse> {
     try {
-        const validation = maintenanceSchemaWithConditional.safeParse(payload);
+        const validation = maintenanceSchema.safeParse(payload);
 
         if (!validation.success) {
             return {
@@ -90,6 +90,7 @@ async function createMaintenance(
 
         const pb = await requireAuth();
         const data = validation.data;
+        const user = pb.authStore.record;
 
         const asset = await pb.collection("assets").getOne(data.assetId, {
             expand: "device_model_id,office_id,room_id",
@@ -108,30 +109,24 @@ async function createMaintenance(
             assetUpdatePayload.firmware = data.newFirmware;
         }
 
-        if (data.updateNotes && data.newNotes) {
-            assetUpdates.notes = data.newNotes;
-            assetUpdatePayload.notes = data.newNotes;
-        }
-
         if (Object.keys(assetUpdatePayload).length > 0) {
             await pb.collection("assets").update(data.assetId, assetUpdatePayload);
         }
 
-        const record = await pb.collection("asset_maintenances").create({
+        await pb.collection("asset_activities").create({
             asset_id: data.assetId,
             asset_snapshot: buildSnapshot(asset),
-            date: data.date,
-            type: data.type,
-            type_other: data.type === "lainnya" ? data.typeOther : "",
-            description: data.description || undefined,
-            performed_by: data.performedBy || undefined,
             asset_updates: assetUpdates,
+            date: data.date,
+            type: "maintenance",
+            notes: data.description || undefined,
+            performed_by: data.performedBy || user?.name || user?.email || undefined,
         });
 
         return {
             success: true,
             data: {
-                id: record.id,
+                id: data.assetId,
             },
         };
     } catch (error) {

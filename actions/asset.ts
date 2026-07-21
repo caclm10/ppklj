@@ -97,71 +97,6 @@ function snapshotFromRecord(record: Record<string, unknown>) {
     return snapshot;
 }
 
-function valuesEqual(a: unknown, b: unknown) {
-    if (Array.isArray(a) && Array.isArray(b)) {
-        if (a.length !== b.length) return false;
-        const sortedA = [...a].sort();
-        const sortedB = [...b].sort();
-        return sortedA.every((value, index) => value === sortedB[index]);
-    }
-    return a === b;
-}
-
-function displayValue(
-    field: string,
-    record: Record<string, unknown>
-): unknown {
-    if (field === "office_id") return officeName(record) || record[field];
-    if (field === "room_id") return roomName(record) || record[field];
-    if (field === "device_model_id") return modelName(record) || record[field];
-    return record[field];
-}
-
-function computeChanges(
-    original: Record<string, unknown>,
-    updated: Record<string, unknown>
-) {
-    const changes: Record<string, { old: unknown; new: unknown }> = {};
-    for (const field of ASSET_FIELDS) {
-        const oldValue = formatSnapshotValue(original[field]);
-        const newValue = formatSnapshotValue(updated[field]);
-        if (!valuesEqual(oldValue, newValue)) {
-            changes[field] = {
-                old: displayValue(field, original),
-                new: displayValue(field, updated),
-            };
-        }
-    }
-    return changes;
-}
-
-async function createAssetLog(
-    pb: Awaited<ReturnType<typeof requireAuth>>,
-    action: "create" | "update" | "delete",
-    asset: { id: string; hostname?: string },
-    snapshot: Record<string, unknown>,
-    changes: Record<string, { old: unknown; new: unknown }>
-) {
-    try {
-        const user = pb.authStore.record;
-        await pb.collection("asset_logs").create({
-            asset_id: asset.id,
-            asset_name: asset.hostname || "",
-            action,
-            snapshot,
-            changes,
-            performed_by: user?.id || "",
-            performed_by_name:
-                (user?.name as string | undefined) ||
-                (user?.email as string | undefined) ||
-                user?.id ||
-                "",
-        });
-    } catch (error) {
-        console.error("Failed to create asset log:", error);
-    }
-}
-
 async function createAsset(
     payload: CreateAssetInput
 ): Promise<CreateAssetResponse> {
@@ -193,18 +128,6 @@ async function createAsset(
             office_id: relationValue(validation.data.officeId),
             room_id: relationValue(validation.data.roomId),
         });
-
-        const expandedRecord = await pb.collection("assets").getOne(record.id, {
-            expand: "device_model_id,office_id,room_id",
-        });
-
-        await createAssetLog(
-            pb,
-            "create",
-            { id: record.id, hostname: record.hostname },
-            snapshotFromRecord(expandedRecord),
-            {}
-        );
 
         return {
             success: true,
@@ -246,11 +169,7 @@ async function updateAsset(
 
         const pb = await requireAuth();
 
-        const originalRecord = await pb.collection("assets").getOne(id, {
-            expand: "device_model_id,office_id,room_id",
-        });
-
-        const updatedRecord = await pb.collection("assets").update(id, {
+        await pb.collection("assets").update(id, {
             device_model_id: relationValue(validation.data.deviceModelId),
             serial_number: validation.data.serialNumber,
             hostname: validation.data.hostname,
@@ -266,20 +185,6 @@ async function updateAsset(
             office_id: relationValue(validation.data.officeId),
             room_id: relationValue(validation.data.roomId),
         });
-
-        const expandedUpdatedRecord = await pb
-            .collection("assets")
-            .getOne(updatedRecord.id, {
-                expand: "device_model_id,office_id,room_id",
-            });
-
-        await createAssetLog(
-            pb,
-            "update",
-            { id, hostname: updatedRecord.hostname },
-            snapshotFromRecord(expandedUpdatedRecord),
-            computeChanges(originalRecord, expandedUpdatedRecord)
-        );
 
         return {
             success: true,
@@ -309,18 +214,22 @@ async function deleteAsset(
 ): Promise<{ success: boolean; message?: string }> {
     try {
         const pb = await requireAuth();
+        const user = pb.authStore.record;
         const record = await pb.collection("assets").getOne(id, {
             expand: "device_model_id,office_id,room_id",
         });
-        await pb.collection("assets").delete(id);
 
-        await createAssetLog(
-            pb,
-            "delete",
-            { id, hostname: record.hostname as string | undefined },
-            snapshotFromRecord(record),
-            {}
-        );
+        await pb.collection("asset_activities").create({
+            asset_id: id,
+            asset_snapshot: snapshotFromRecord(record),
+            asset_updates: {},
+            date: new Date().toISOString().slice(0, 10),
+            type: "hapus",
+            notes: "Aset dihapus dari sistem.",
+            performed_by: user?.name || user?.email || undefined,
+        });
+
+        await pb.collection("assets").delete(id);
 
         return { success: true };
     } catch (error) {

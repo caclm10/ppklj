@@ -6,7 +6,7 @@ import {
     useEffect,
     useId,
 } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -31,7 +31,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { applyFormErrors } from "@/lib/utils";
 import { assetStatusValues } from "@/schemas/asset";
 import {
-    maintenanceTypeValues,
     type CreateMaintenanceInput,
     type CreateMaintenanceResponse,
 } from "@/schemas/maintenance";
@@ -40,7 +39,6 @@ interface AssetMaintenanceFormProps {
     assetId: string;
     currentStatus: string;
     currentFirmware: string;
-    currentNotes: string;
     onSuccess?: () => void;
 }
 
@@ -48,7 +46,6 @@ function AssetMaintenanceForm({
     assetId,
     currentStatus,
     currentFirmware,
-    currentNotes,
     onSuccess,
 }: AssetMaintenanceFormProps) {
     const router = useRouter();
@@ -66,21 +63,15 @@ function AssetMaintenanceForm({
         defaultValues: {
             assetId,
             date: new Date().toISOString().slice(0, 10),
-            type: "perbaikan",
-            typeOther: "",
             description: "",
             performedBy: "",
             updateStatus: false,
             newStatus: (currentStatus as "baik" | "rusak" | "rusak berat") || "baik",
             updateFirmware: false,
             newFirmware: currentFirmware || "",
-            updateNotes: false,
-            newNotes: currentNotes || "",
         },
     });
     const formId = useId();
-
-    const selectedType = useWatch({ control: form.control, name: "type" });
 
     useEffect(() => {
         if (!state) return;
@@ -134,64 +125,6 @@ function AssetMaintenanceForm({
                         </Field>
                     )}
                 />
-
-                <Controller
-                    control={form.control}
-                    name="type"
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>
-                                Tipe Maintenance
-                            </FieldLabel>
-                            <Select
-                                value={field.value}
-                                onValueChange={field.onChange}
-                            >
-                                <SelectTrigger
-                                    id={field.name}
-                                    aria-invalid={fieldState.invalid}
-                                    className="w-full"
-                                >
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {maintenanceTypeValues.map((type) => (
-                                        <SelectItem key={type} value={type}>
-                                            {type.charAt(0).toUpperCase() +
-                                                type.slice(1)}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} />
-                            )}
-                        </Field>
-                    )}
-                />
-
-                {selectedType === "lainnya" && (
-                    <Controller
-                        control={form.control}
-                        name="typeOther"
-                        render={({ field, fieldState }) => (
-                            <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel htmlFor={field.name}>
-                                    Tipe Lainnya
-                                </FieldLabel>
-                                <Input
-                                    {...field}
-                                    id={field.name}
-                                    placeholder="Sebutkan tipe maintenance"
-                                    aria-invalid={fieldState.invalid}
-                                />
-                                {fieldState.invalid && (
-                                    <FieldError errors={[fieldState.error]} />
-                                )}
-                            </Field>
-                        )}
-                    />
-                )}
 
                 <Controller
                     control={form.control}
@@ -292,36 +225,6 @@ function AssetMaintenanceForm({
                                 />
                             </div>
                         </div>
-
-                        <div className="flex items-start gap-3">
-                            <Controller
-                                control={form.control}
-                                name="updateNotes"
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id="updateNotes"
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
-                            />
-                            <div className="grid flex-1 gap-2">
-                                <FieldLabel htmlFor="updateNotes">
-                                    Update Catatan Aset
-                                </FieldLabel>
-                                <Controller
-                                    control={form.control}
-                                    name="newNotes"
-                                    render={({ field }) => (
-                                        <Textarea
-                                            {...field}
-                                            placeholder="Catatan baru untuk aset"
-                                            rows={3}
-                                        />
-                                    )}
-                                />
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -331,7 +234,7 @@ function AssetMaintenanceForm({
                     render={({ field }) => (
                         <Field>
                             <FieldLabel htmlFor={field.name}>
-                                Deskripsi Maintenance (opsional)
+                                Catatan Maintenance (opsional)
                             </FieldLabel>
                             <Textarea
                                 {...field}

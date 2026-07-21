@@ -1,5 +1,1 @@
-export interface AssetStatus {
-    baik: "baik";
-    rusak: "rusak";
-    rusakBerat: "rusak berat";
-}
+export type AssetStatus = "baik" | "rusak" | "rusak berat";
