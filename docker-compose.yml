@@ -2,15 +2,25 @@ services:
   app:
     build:
       context: .
-      dockerfile: ./docker/app/Dockerfile
-    restart: unless-stopped
+      dockerfile: ./docker/nginx/Dockerfile
     container_name: ppklj-app
+    networks:
+      - ppklj
+    ports:
+      - "9000:80"
+    restart: unless-stopped
+    depends_on:
+      - frontend      
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+    restart: unless-stopped
+    container_name: ppklj-frontend
     networks:
       - ppklj
     env_file:
       - .env.production
-    ports:
-      - "3000:3000"
     depends_on:
       - pocketbase
 
@@ -18,8 +28,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/pocketbase/Dockerfile
-    ports:
-      - "8090:8090"
     container_name: ppklj-pocketbase
     volumes:
       - ./pb_data:/pb/pb_data
