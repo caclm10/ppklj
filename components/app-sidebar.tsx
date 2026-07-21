@@ -1,7 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import {
+    BoxIcon,
+    BuildingIcon,
     ChevronsUpDownIcon,
+    CircleGaugeIcon,
+    CpuIcon,
     LogOutIcon,
     NetworkIcon,
     UserCircleIcon,
@@ -34,14 +39,33 @@ import {
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/providers/auth-provider";
-import Link from "next/link";
 
 const menu = {
     items: [
         {
+            title: "Dashboard",
+            url: "/dashboard",
+            icon: CircleGaugeIcon,
+        },
+        {
             title: "PIC",
             url: "/pic",
             icon: UsersRoundIcon,
+        },
+        {
+            title: "Kantor",
+            url: "/kantor",
+            icon: BuildingIcon,
+        },
+        {
+            title: "Devices",
+            url: "/devices",
+            icon: CpuIcon,
+        },
+        {
+            title: "Assets",
+            url: "/assets",
+            icon: BoxIcon,
         },
     ],
 };

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // PocketBase JSVM hooks and migrations are not processed by ESLint.
+    "pb_hooks/**",
+    "pb_migrations/**",
   ]),
 ]);
 

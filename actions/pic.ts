@@ -1,8 +1,11 @@
 "use server";
 
 import * as z from "zod";
+import { ClientResponseError } from "pocketbase";
 
 import { requireAuth } from "@/lib/server/pocketbase";
+import { getString, type ParsedRecord } from "@/lib/import";
+import type { ImportResult } from "@/components/import-dialog";
 import {
     createPicSchema,
     updatePicSchema,
@@ -11,7 +14,6 @@ import {
     type UpdatePicInput,
     type UpdatePicResponse,
 } from "@/schemas/pic";
-import { ClientResponseError } from "pocketbase";
 
 async function createPic(payload: CreatePicInput): Promise<CreatePicResponse> {
     try {
@@ -111,4 +113,80 @@ async function updatePic(
     }
 }
 
-export { createPic, updatePic };
+async function deletePic(
+    id: string
+): Promise<{ success: boolean; message?: string }> {
+    try {
+        const pb = await requireAuth();
+        await pb.collection("pic").delete(id);
+        return { success: true };
+    } catch (error) {
+        if (error instanceof ClientResponseError) {
+            return {
+                success: false,
+                message: error.message,
+            };
+        }
+
+        console.error("Error in deletePic:", error);
+
+        return {
+            success: false,
+            message: "Terjadi kesalahan saat menghapus PIC.",
+        };
+    }
+}
+
+async function importPics(records: ParsedRecord[]): Promise<ImportResult> {
+    const pb = await requireAuth();
+    let success = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    const existing = await pb
+        .collection("pic")
+        .getFullList({ fields: "id,name" });
+    const existingNames = new Set(
+        existing.map((p) => String(p.name).toLowerCase().trim())
+    );
+
+    for (const record of records) {
+        const name = getString(record.data, "nama pic");
+        if (!name) {
+            skipped++;
+            continue;
+        }
+
+        const normalizedName = name.toLowerCase();
+        if (existingNames.has(normalizedName)) {
+            skipped++;
+            continue;
+        }
+
+        const whatsapp = getString(record.data, "nomor whatsapp");
+        const payload = {
+            name,
+            whatsapp_number: whatsapp || "-",
+            nip: getString(record.data, "nip") || undefined,
+            email: getString(record.data, "email") || undefined,
+            surat_keputusan:
+                getString(record.data, "surat keputusan") || undefined,
+        };
+
+        try {
+            await pb.collection("pic").create(payload);
+            existingNames.add(normalizedName);
+            success++;
+        } catch (error) {
+            if (error instanceof ClientResponseError) {
+                errors.push(`Baris ${record.row}: ${error.message}`);
+            } else {
+                errors.push(`Baris ${record.row}: gagal menyimpan PIC.`);
+            }
+        }
+    }
+
+    return { success, skipped, errors };
+}
+
+export { createPic, updatePic, deletePic, importPics };

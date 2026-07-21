@@ -69,6 +69,7 @@ function PicCreateForm() {
         }
 
         if (state.success) {
+            toast.success("PIC berhasil ditambahkan");
             router.push(`/pic/${state.data?.id}`);
         }
     }, [state, form, router]);

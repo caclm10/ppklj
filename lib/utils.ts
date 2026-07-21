@@ -2,6 +2,8 @@ import { clsx, type ClassValue } from "clsx";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
+import type { AssetStatus } from "@/types/data";
+
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
@@ -18,4 +20,11 @@ function applyFormErrors<T extends FieldValues>(
     });
 }
 
-export { cn, applyFormErrors };
+function getBadgeVariantByStatus(status: AssetStatus) {
+    if (status === "baik") return "success";
+    if (status === "rusak") return "warning";
+    
+    return "destructive";
+}
+
+export { cn, applyFormErrors, getBadgeVariantByStatus };

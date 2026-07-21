@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-    CalendarIcon,
-    ClockIcon,
     FileTextIcon,
     MailIcon,
     PhoneIcon,
@@ -12,6 +10,7 @@ import {
 import { ClientResponseError } from "pocketbase";
 
 import { DashboardHeader } from "@/components/dashboard-header";
+import { DeletePicButton } from "@/components/delete-pic-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -27,20 +26,6 @@ function formatWhatsAppLink(num: string) {
         return `https://wa.me/62${clean.slice(1)}`;
     }
     return `https://wa.me/${clean}`;
-}
-
-function formatDate(dateStr: string) {
-    try {
-        return new Date(dateStr).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    } catch {
-        return dateStr;
-    }
 }
 
 async function PICDetailPage({ params }: PageProps) {
@@ -63,14 +48,18 @@ async function PICDetailPage({ params }: PageProps) {
                 title="Detail PIC"
                 backTo="/pic"
                 action={
-                    <Button
-                        type="button"
-                        nativeButton={false}
-                        render={<Link href={`/pic/${id}/edit`} />}
-                    >
-                        <EditIcon className="size-4" />
-                        Edit PIC
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            nativeButton={false}
+                            render={<Link href={`/pic/${id}/edit`} />}
+                        >
+                            <EditIcon className="size-4" />
+                            Edit PIC
+                        </Button>
+                        <DeletePicButton id={id} name={pic.name} />
+                    </div>
                 }
             />
 
@@ -169,28 +158,6 @@ async function PICDetailPage({ params }: PageProps) {
                             </div>
                         </div>
 
-                        <Separator />
-
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div className="grid gap-1">
-                                <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    Dibuat Pada
-                                </span>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <CalendarIcon className="size-4" />
-                                    <span>{formatDate(pic.created)}</span>
-                                </div>
-                            </div>
-                            <div className="grid gap-1">
-                                <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    Pembaruan Terakhir
-                                </span>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <ClockIcon className="size-4" />
-                                    <span>{formatDate(pic.updated)}</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </CardContent>
             </Card>

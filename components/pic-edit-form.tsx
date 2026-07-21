@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { applyFormErrors } from "@/lib/utils";
 import type { UpdatePicInput, UpdatePicResponse } from "@/schemas/pic";
+import { toast } from "sonner";
 
 interface PicEditFormProps {
     id: string;
@@ -34,9 +35,6 @@ function PicEditForm({ id, initialData }: PicEditFormProps) {
     const [state, action, pending] = useActionState(
         async (_: UpdatePicResponse | null, payload: UpdatePicInput) => {
             const result = await updatePic(id, payload);
-            if (result.success) {
-                router.push(`/pic/${id}`);
-            }
             return result;
         },
         null
@@ -54,10 +52,24 @@ function PicEditForm({ id, initialData }: PicEditFormProps) {
     }
 
     useEffect(() => {
-        if (state?.errors) {
-            applyFormErrors(form, state.errors);
+        if (!state) return;
+
+        if (!state.success) {
+            if (state?.errors) {
+                applyFormErrors(form, state.errors);
+            } else {
+                toast.error(
+                    state?.message || "Terjadi kesalahan saat memperbarui PIC."
+                );
+            }
         }
-    }, [state?.errors, form]);
+
+        if (state.success) {
+            toast.success("PIC berhasil diperbarui");
+            router.push(`/pic/${id}`);
+            router.refresh();
+        }
+    }, [state, form, router, id]);
 
     return (
         <Card>
