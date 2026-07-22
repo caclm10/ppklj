@@ -13,110 +13,6 @@ function firstId(value: unknown): string {
     return "";
 }
 
-function getMonthKey(date: Date): string {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-}
-
-function getDayKey(date: Date): string {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function buildMonthlyData(records: RecordModel[]) {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const months: { date: string; count: number; key: string }[] = [];
-
-    for (let i = 0; i < 12; i++) {
-        const date = new Date(currentYear, i, 1);
-        months.push({
-            date: getDayKey(date),
-            count: 0,
-            key: getMonthKey(date),
-        });
-    }
-
-    const counts = new Map<string, number>();
-    for (const record of records) {
-        const date = new Date(record.date);
-        if (Number.isNaN(date.getTime())) continue;
-        const key = getMonthKey(date);
-        counts.set(key, (counts.get(key) || 0) + 1);
-    }
-
-    for (const item of months) {
-        item.count = counts.get(item.key) || 0;
-    }
-
-    return months.map(({ date, count }) => ({ date, count }));
-}
-
-function startOfWeek(date: Date): Date {
-    const copy = new Date(date);
-    copy.setHours(0, 0, 0, 0);
-    const day = copy.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    copy.setDate(copy.getDate() + diff);
-    return copy;
-}
-
-function buildWeeklyData(records: RecordModel[]) {
-    const monday = startOfWeek(new Date());
-    const daysList: { date: string; count: number; key: string }[] = [];
-
-    for (let i = 0; i < 7; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        daysList.push({
-            date: getDayKey(date),
-            count: 0,
-            key: getDayKey(date),
-        });
-    }
-
-    const counts = countByDayKey(records);
-    for (const item of daysList) {
-        item.count = counts.get(item.key) || 0;
-    }
-
-    return daysList.map(({ date, count }) => ({ date, count }));
-}
-
-function buildMonthlyCalendarData(records: RecordModel[]) {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysList: { date: string; count: number; key: string }[] = [];
-
-    for (let i = 1; i <= daysInMonth; i++) {
-        const date = new Date(year, month, i);
-        daysList.push({
-            date: getDayKey(date),
-            count: 0,
-            key: getDayKey(date),
-        });
-    }
-
-    const counts = countByDayKey(records);
-    for (const item of daysList) {
-        item.count = counts.get(item.key) || 0;
-    }
-
-    return daysList.map(({ date, count }) => ({ date, count }));
-}
-
-function countByDayKey(records: RecordModel[]) {
-    const counts = new Map<string, number>();
-    for (const record of records) {
-        const date = new Date(record.date);
-        if (Number.isNaN(date.getTime())) continue;
-        date.setHours(0, 0, 0, 0);
-        const key = getDayKey(date);
-        counts.set(key, (counts.get(key) || 0) + 1);
-    }
-    return counts;
-}
-
 async function DashboardPage() {
     const pb = await requireAuth();
 
@@ -181,13 +77,6 @@ async function DashboardPage() {
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count);
 
-    const maintenanceMonthly = buildMonthlyData(maintenances);
-    const maintenanceWeekly = buildWeeklyData(maintenances);
-    const maintenanceMonthlyCalendar = buildMonthlyCalendarData(maintenances);
-    const mutationMonthly = buildMonthlyData(mutations);
-    const mutationWeekly = buildWeeklyData(mutations);
-    const mutationMonthlyCalendar = buildMonthlyCalendarData(mutations);
-
     const recentMaintenances = maintenances.slice(0, 5);
     const recentMutations = mutations.slice(0, 5);
 
@@ -223,12 +112,8 @@ async function DashboardPage() {
 
             <DashboardCharts
                 assetsByOffice={officeChartData}
-                maintenancesMonthly={maintenanceMonthly}
-                maintenancesWeekly={maintenanceWeekly}
-                maintenancesMonthlyCalendar={maintenanceMonthlyCalendar}
-                mutationsMonthly={mutationMonthly}
-                mutationsWeekly={mutationWeekly}
-                mutationsMonthlyCalendar={mutationMonthlyCalendar}
+                maintenances={maintenances}
+                mutations={mutations}
             />
 
             <DashboardRecentActivities

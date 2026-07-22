@@ -48,8 +48,8 @@ function typeLabel(type: string) {
 }
 
 function typeBadgeVariant(type: string) {
-    if (type === "maintenance") return "secondary";
-    if (type === "mutasi") return "default";
+    if (type === "maintenance") return "maintenance";
+    if (type === "mutasi") return "mutation";
     if (type === "hapus") return "destructive";
     return "outline";
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { RecordModel } from "pocketbase";
 
 import {
@@ -84,9 +85,11 @@ function DashboardRecentActivities({
                                             {formatDate(maintenance.date)}
                                         </TableCell>
                                         <TableCell className="font-medium">
-                                            {getAssetName(
-                                                maintenance.asset_snapshot
-                                            )}
+                                            <Link href={`/assets/${maintenance.asset_id}`}>
+                                                {getAssetName(
+                                                    maintenance.asset_snapshot
+                                                )}
+                                            </Link>
                                         </TableCell>
                                         <TableCell className="max-w-[250px] truncate text-muted-foreground">
                                             {stripHtml(maintenance.notes) ||
@@ -137,9 +140,11 @@ function DashboardRecentActivities({
                                                 {formatDate(mutation.date)}
                                             </TableCell>
                                             <TableCell className="font-medium">
-                                                {getAssetName(
-                                                    mutation.asset_snapshot
-                                                )}
+                                                <Link href={`/assets/${mutation.asset_id}`}>
+                                                    {getAssetName(
+                                                        mutation.asset_snapshot
+                                                    )}
+                                                </Link>
                                             </TableCell>
                                             <TableCell>
                                                 {String(
