@@ -333,18 +333,36 @@ async function importAssets(records: ParsedRecord[]): Promise<ImportResult> {
             continue;
         }
 
-        const { vendor, model } = parseDeviceModel(deviceModelValue);
+        const parsedModel = parseDeviceModel(deviceModelValue);
+        let vendor = parsedModel.vendor;
+        const model = parsedModel.model;
+        if (!vendor) vendor = "-";
         let deviceModelId = modelByKey.get(modelKey(vendor, model));
 
         if (!deviceModelId) {
-            const categoryName = getString(record.data, "device category");
-            const categoryId = categoryByName.get(categoryName.toLowerCase());
+            let categoryName = getString(record.data, "device category");
+            if (!categoryName) categoryName = "Lainnya";
+
+            let categoryId = categoryByName.get(categoryName.toLowerCase());
+
             if (!categoryId) {
-                errors.push(
-                    `Baris ${record.row}: device model "${deviceModelValue}" belum terdaftar dan tidak ada kategori yang cocok.`
-                );
-                skipped++;
-                continue;
+                try {
+                    const created = await pb
+                        .collection("device_categories")
+                        .create({ name: categoryName });
+                    categoryId = created.id;
+                    categoryByName.set(categoryName.toLowerCase(), created.id);
+                } catch (error) {
+                    if (error instanceof ClientResponseError) {
+                        errors.push(`Baris ${record.row}: ${error.message}`);
+                    } else {
+                        errors.push(
+                            `Baris ${record.row}: gagal membuat kategori device.`
+                        );
+                    }
+                    skipped++;
+                    continue;
+                }
             }
 
             try {
