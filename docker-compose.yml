@@ -29,6 +29,7 @@ services:
       context: .
       dockerfile: ./docker/pocketbase/Dockerfile
     container_name: ppklj-pocketbase
+    restart: unless-stopped
     volumes:
       - ./pb_data:/pb/pb_data
     networks:
