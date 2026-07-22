@@ -3,6 +3,7 @@ import type { RecordModel } from "pocketbase";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { DashboardRecentActivities } from "@/components/dashboard-recent-activities";
 import { DashboardStats } from "@/components/dashboard-stats";
+import { DashboardWarningCard } from "@/components/dashboard-warning-card";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { requireAuth } from "@/lib/server/pocketbase";
 
@@ -200,6 +201,25 @@ async function DashboardPage() {
                 rusak={statusCounts.rusak}
                 rusakBerat={statusCounts["rusak berat"]}
             />
+
+            <div className="grid gap-6 lg:grid-cols-2">
+                <DashboardWarningCard
+                    title="Mendekati End of Support"
+                    description="Aset dengan masa support yang akan berakhir dalam 2 tahun."
+                    assets={assets}
+                    dateField="support_until"
+                    warningYears={2}
+                    emptyMessage="Tidak ada aset yang mendekati EOS."
+                />
+                <DashboardWarningCard
+                    title="Mendekati End of Warranty"
+                    description="Aset dengan masa garansi yang akan berakhir dalam 1 tahun."
+                    assets={assets}
+                    dateField="warranty_until"
+                    warningYears={1}
+                    emptyMessage="Tidak ada aset yang mendekati EOW."
+                />
+            </div>
 
             <DashboardCharts
                 assetsByOffice={officeChartData}

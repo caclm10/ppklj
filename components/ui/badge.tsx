@@ -23,6 +23,10 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
+        maintenance:
+          "bg-maintenance/10 text-maintenance focus-visible:ring-maintenance/20 dark:bg-maintenance/20 dark:focus-visible:ring-maintenance/40 [a]:hover:bg-maintenance/20",
+        mutation:
+          "bg-mutation/10 text-mutation focus-visible:ring-mutation/20 dark:bg-mutation/20 dark:focus-visible:ring-mutation/40 [a]:hover:bg-mutation/20"
       },
     },
     defaultVariants: {

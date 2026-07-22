@@ -23,8 +23,36 @@ function applyFormErrors<T extends FieldValues>(
 function getBadgeVariantByStatus(status: AssetStatus) {
     if (status === "baik") return "success";
     if (status === "rusak") return "warning";
-    
+
     return "destructive";
 }
 
-export { cn, applyFormErrors, getBadgeVariantByStatus };
+function isApproachingDate(
+    dateStr: string | undefined | null,
+    yearsBefore: number
+): boolean {
+    if (!dateStr) return false;
+    const target = new Date(dateStr);
+    if (Number.isNaN(target.getTime())) return false;
+
+    const threshold = new Date(target);
+    threshold.setFullYear(threshold.getFullYear() - yearsBefore);
+
+    const now = new Date();
+    return now >= threshold && now <= target;
+}
+
+function isExpired(dateStr: string | undefined | null): boolean {
+    if (!dateStr) return false;
+    const target = new Date(dateStr);
+    if (Number.isNaN(target.getTime())) return false;
+    return new Date() > target;
+}
+
+export {
+    cn,
+    applyFormErrors,
+    getBadgeVariantByStatus,
+    isApproachingDate,
+    isExpired,
+};

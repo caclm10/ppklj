@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+    BadgeAlertIcon,
     BoxIcon,
     EditIcon,
     HashIcon,
@@ -17,12 +18,17 @@ import { ClientResponseError } from "pocketbase";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DeleteAssetButton } from "@/components/delete-asset-button";
 import { AssetActivityHistory } from "@/components/asset-activity-history";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { requireAuth } from "@/lib/server/pocketbase";
-import { getBadgeVariantByStatus } from "@/lib/utils";
+import {
+    getBadgeVariantByStatus,
+    isApproachingDate,
+    isExpired,
+} from "@/lib/utils";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -77,6 +83,11 @@ async function AssetDetailPage({ params }: PageProps) {
         ? asset.expand.room_id[0]
         : asset.expand?.room_id;
 
+    const approachingSupport = isApproachingDate(asset.support_until, 2);
+    const approachingWarranty = isApproachingDate(asset.warranty_until, 1);
+    const supportExpired = isExpired(asset.support_until);
+    const warrantyExpired = isExpired(asset.warranty_until);
+
     return (
         <div className="flex flex-col gap-6">
             <DashboardHeader
@@ -97,6 +108,38 @@ async function AssetDetailPage({ params }: PageProps) {
                     </div>
                 }
             />
+
+            {(approachingSupport || supportExpired) && (
+                <Alert variant={supportExpired ? "destructive" : "warning"}>
+                    <BadgeAlertIcon />
+                    <AlertTitle>Peringatan Support</AlertTitle>
+                    <AlertDescription>
+                        {supportExpired
+                            ? `Masa support aset telah berakhir pada ${formatDate(
+                                  asset.support_until
+                              )}.`
+                            : `Masa support aset akan berakhir pada ${formatDate(
+                                  asset.support_until
+                              )}.`}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {(approachingWarranty || warrantyExpired) && (
+                <Alert variant={warrantyExpired ? "destructive" : "warning"}>
+                    <BadgeAlertIcon />
+                    <AlertTitle>Peringatan Garansi</AlertTitle>
+                    <AlertDescription>
+                        {warrantyExpired
+                            ? `Masa garansi aset telah berakhir pada ${formatDate(
+                                  asset.warranty_until
+                              )}.`
+                            : `Masa garansi aset akan berakhir pada ${formatDate(
+                                  asset.warranty_until
+                              )}.`}
+                    </AlertDescription>
+                </Alert>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-3">
                 <Card className="lg:col-span-2">

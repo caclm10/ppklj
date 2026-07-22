@@ -7,6 +7,7 @@ import {
     ChevronsUpDownIcon,
     CircleGaugeIcon,
     CpuIcon,
+    HistoryIcon,
     LogOutIcon,
     NetworkIcon,
     UserCircleIcon,
@@ -66,6 +67,11 @@ const menu = {
             title: "Assets",
             url: "/assets",
             icon: BoxIcon,
+        },
+        {
+            title: "Aktivitas",
+            url: "/activities",
+            icon: HistoryIcon,
         },
     ],
 };
