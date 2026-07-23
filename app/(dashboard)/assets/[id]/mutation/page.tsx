@@ -22,7 +22,9 @@ async function AssetMutationPage({ params }: PageProps) {
     let rooms: RecordModel[] = [];
 
     try {
-        asset = await pb.collection("assets").getOne(id);
+        asset = await pb
+            .collection("assets")
+            .getFirstListItem(pb.filter("id = {:id} && deleted = null", { id }));
 
         const [officesResult, roomsResult] = await Promise.all([
             pb.collection("offices").getFullList({ sort: "nama" }),

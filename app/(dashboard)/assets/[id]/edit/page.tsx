@@ -26,7 +26,11 @@ async function AssetEditPage({ params }: PageProps) {
 
     let asset;
     try {
-        asset = await pb.collection("assets").getOne(id);
+        asset = await pb
+            .collection("assets")
+            .getFirstListItem(
+                pb.filter("id = {:id} && deleted = null", { id })
+            );
     } catch (error) {
         if (error instanceof ClientResponseError && error.status === 404) {
             notFound();

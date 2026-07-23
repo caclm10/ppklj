@@ -169,6 +169,18 @@ async function updateAsset(
 
         const pb = await requireAuth();
 
+        const existing = await pb
+            .collection("assets")
+            .getFirstListItem(
+                pb.filter("id = {:id} && deleted = null", { id })
+            );
+        if (!existing) {
+            return {
+                success: false,
+                message: "Aset tidak ditemukan atau sudah dihapus.",
+            };
+        }
+
         await pb.collection("assets").update(id, {
             device_model_id: relationValue(validation.data.deviceModelId),
             serial_number: validation.data.serialNumber,
@@ -210,7 +222,8 @@ async function updateAsset(
 }
 
 async function deleteAsset(
-    id: string
+    id: string,
+    documentReference: string
 ): Promise<{ success: boolean; message?: string }> {
     try {
         const pb = await requireAuth();
@@ -227,9 +240,12 @@ async function deleteAsset(
             type: "hapus",
             notes: "Aset dihapus dari sistem.",
             performed_by: user?.name || user?.email || undefined,
+            document_reference: documentReference || undefined,
         });
 
-        await pb.collection("assets").delete(id);
+        await pb.collection("assets").update(id, {
+            deleted: new Date().toISOString().slice(0, 10),
+        });
 
         return { success: true };
     } catch (error) {
@@ -285,7 +301,12 @@ async function importAssets(records: ParsedRecord[]): Promise<ImportResult> {
             pb.collection("device_categories").getFullList(),
             pb.collection("offices").getFullList(),
             pb.collection("office_rooms").getFullList(),
-            pb.collection("assets").getFullList({ fields: "id,serial_number,hostname" }),
+            pb
+                .collection("assets")
+                .getFullList({
+                    fields: "id,serial_number,hostname",
+                    filter: "deleted = null",
+                }),
         ]);
 
     const existingSerials = new Set(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, cloneElement } from "react";
+import { useState, useTransition } from "react";
 import { FileUpIcon, UploadIcon, XIcon } from "lucide-react";
 
 import {
@@ -10,7 +10,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -54,7 +53,6 @@ interface ImportDialogProps {
     columnLabels: Record<string, string>;
     validate?: (record: ParsedRecord) => { valid: boolean; reason?: string };
     onImport: (records: ParsedRecord[]) => Promise<ImportResult>;
-    trigger?: React.ReactNode;
 }
 
 function normalizeKey(key: string) {
@@ -81,7 +79,6 @@ function ImportDialog({
     columnLabels,
     validate,
     onImport,
-    trigger,
 }: ImportDialogProps) {
     const [open, setOpen] = useState(false);
     const [previews, setPreviews] = useState<ImportPreview[]>([]);
@@ -157,7 +154,15 @@ function ImportDialog({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            {trigger}
+            <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(true)}
+                disabled={isPending}
+            >
+                <UploadIcon data-icon="inline-start" />
+                Impor
+            </Button>
             <DialogContent className="sm:max-w-3xl">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
@@ -427,13 +432,4 @@ function ImportDialog({
     );
 }
 
-function ImportDialogTrigger() {
-    return (
-        <DialogTrigger render={<Button type="button" variant="outline" />}>
-            <UploadIcon />
-            Impor
-        </DialogTrigger>
-    );
-}
-
-export { ImportDialog, ImportDialogTrigger };
+export { ImportDialog };

@@ -92,9 +92,14 @@ async function createMutation(
         const data = validation.data;
         const user = pb.authStore.record;
 
-        const asset = await pb.collection("assets").getOne(data.assetId, {
-            expand: "device_model_id,office_id,room_id",
-        });
+        const asset = await pb
+            .collection("assets")
+            .getFirstListItem(
+                pb.filter("id = {:id} && deleted = null", {
+                    id: data.assetId,
+                }),
+                { expand: "device_model_id,office_id,room_id" }
+            );
 
         const toOffice = await pb.collection("offices").getOne(data.toOfficeId);
         const toOfficeName = toOffice.nama || "";

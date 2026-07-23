@@ -3,7 +3,6 @@ import {
     PlusIcon,
     BuildingIcon,
     ArrowRightIcon,
-    UploadIcon,
 } from "lucide-react";
 import type { RecordModel } from "pocketbase";
 
@@ -27,10 +26,9 @@ import {
     EmptyMedia,
     EmptyTitle,
 } from "@/components/ui/empty";
-import { ImportDialog, ImportDialogTrigger } from "@/components/import-dialog";
+import { ImportDialog } from "@/components/import-dialog";
 import { importOffices } from "@/actions/office";
 import { requireAuth } from "@/lib/server/pocketbase";
-import { DialogTrigger } from "@/components/ui/dialog";
 
 interface PageProps {
     searchParams: Promise<{
@@ -88,7 +86,6 @@ async function KantorPage({ searchParams }: PageProps) {
                                 "nama kantor": "Nama Kantor",
                             }}
                             onImport={importOffices}
-                            trigger={<ImportDialogTrigger />}
                         />
 
                         <Button

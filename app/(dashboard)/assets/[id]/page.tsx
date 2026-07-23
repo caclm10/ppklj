@@ -55,9 +55,12 @@ async function AssetDetailPage({ params }: PageProps) {
     let activities: RecordModel[] = [];
 
     try {
-        asset = await pb.collection("assets").getOne(id, {
-            expand: "device_model_id,office_id,room_id",
-        });
+        asset = await pb
+            .collection("assets")
+            .getFirstListItem(
+                pb.filter("id = {:id} && deleted = null", { id }),
+                { expand: "device_model_id,office_id,room_id" }
+            );
 
         const activitiesResult = await pb
             .collection("asset_activities")

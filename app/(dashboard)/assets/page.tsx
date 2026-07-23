@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlusIcon, BoxIcon, ArrowRightIcon, UploadIcon } from "lucide-react";
+import { PlusIcon, BoxIcon, ArrowRightIcon } from "lucide-react";
 import type { RecordModel } from "pocketbase";
 
 import { DashboardHeader } from "@/components/dashboard-header";
@@ -23,7 +23,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ImportDialog, ImportDialogTrigger } from "@/components/import-dialog";
+import { ImportDialog } from "@/components/import-dialog";
 import { importAssets } from "@/actions/asset";
 import { requireAuth } from "@/lib/server/pocketbase";
 import { getBadgeVariantByStatus } from "@/lib/utils";
@@ -53,7 +53,7 @@ async function AssetsPage({ searchParams }: PageProps) {
     let totalPages = 0;
 
     try {
-        const filterParts = [];
+        const filterParts = [`deleted = null`];
         if (searchQuery) {
             filterParts.push(
                 `(hostname ~ "${searchQuery}" || serial_number ~ "${searchQuery}")`
@@ -65,7 +65,7 @@ async function AssetsPage({ searchParams }: PageProps) {
             .getList(currentPage, itemsPerPage, {
                 sort: "-created",
                 expand: "device_model_id",
-                filter: filterParts.length > 0 ? filterParts.join(" && ") : "",
+                filter: filterParts.join(" && "),
             });
 
         assets = resultList.items;
@@ -95,7 +95,6 @@ async function AssetsPage({ searchParams }: PageProps) {
                                 hostname: "Hostname",
                             }}
                             onImport={importAssets}
-                            trigger={<ImportDialogTrigger />}
                         />
                         <Button
                             type="button"

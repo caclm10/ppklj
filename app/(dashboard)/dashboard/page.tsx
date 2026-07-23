@@ -23,6 +23,7 @@ async function DashboardPage() {
     try {
         assets = await pb.collection("assets").getFullList({
             expand: "office_id",
+            filter: "deleted = null",
         });
     } catch (error) {
         console.error("Failed to fetch assets:", error);

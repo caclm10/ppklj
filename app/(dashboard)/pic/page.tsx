@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlusIcon, UserIcon, ArrowRightIcon, UploadIcon } from "lucide-react";
+import { PlusIcon, UserIcon, ArrowRightIcon } from "lucide-react";
 import type { RecordModel } from "pocketbase";
 
 import { DashboardHeader } from "@/components/dashboard-header";
@@ -22,7 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ImportDialog, ImportDialogTrigger } from "@/components/import-dialog";
+import { ImportDialog } from "@/components/import-dialog";
 import { importPics } from "@/actions/pic";
 import { requireAuth } from "@/lib/server/pocketbase";
 
@@ -81,7 +81,6 @@ async function PICPage({ searchParams }: PageProps) {
                                 "nama pic": "Nama PIC",
                             }}
                             onImport={importPics}
-                            trigger={<ImportDialogTrigger />}
                         />
                         <Button
                             type="button"
