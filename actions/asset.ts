@@ -1,10 +1,12 @@
 "use server";
 
 import * as z from "zod";
-import { ClientResponseError } from "pocketbase";
+import * as xlsx from "xlsx";
+import { ClientResponseError, type RecordModel } from "pocketbase";
 
 import { requireAuth } from "@/lib/server/pocketbase";
 import { getString, type ParsedRecord } from "@/lib/import";
+import { ASSET_EXPORT_COLUMNS } from "@/lib/asset-export";
 import type { ImportResult } from "@/components/import-dialog";
 import {
     createAssetSchema,
@@ -80,6 +82,28 @@ function modelName(record: Record<string, unknown>) {
     return `${vendor} ${modelValue}`.trim();
 }
 
+function formatDateId(value: unknown) {
+    if (!value) return "";
+    const date = new Date(String(value));
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+}
+
+function picNames(record: Record<string, unknown>) {
+    const office = firstExpanded(record, "office_id");
+    if (!office) return "";
+    const pics = (office.expand as Record<string, unknown> | undefined)?.pic;
+    if (!Array.isArray(pics)) return "";
+    return pics
+        .map((pic) => (pic as RecordModel).name)
+        .filter(Boolean)
+        .join(", ");
+}
+
 function formatSnapshotValue(value: unknown) {
     if (value === undefined || value === null) return "";
     if (Array.isArray(value)) return value;
@@ -95,6 +119,62 @@ function snapshotFromRecord(record: Record<string, unknown>) {
     snapshot["office_name"] = officeName(record);
     snapshot["room_name"] = roomName(record);
     return snapshot;
+}
+
+async function exportAssets(
+    selectedKeys: string[]
+): Promise<{ base64: string; filename: string }> {
+    const pb = await requireAuth();
+
+    const assets = await pb.collection("assets").getFullList({
+        filter: "deleted = null",
+        expand: "device_model_id,office_id.pic,room_id",
+        sort: "-created",
+    });
+
+    const labelByKey = new Map<string, string>(
+        ASSET_EXPORT_COLUMNS.map((col) => [col.key, col.label])
+    );
+
+    const rows = assets.map((asset) => {
+        const record = asset as unknown as Record<string, unknown>;
+        const values: Record<string, unknown> = {
+            hostname: asset.hostname,
+            serial_number: asset.serial_number,
+            device_model: modelName(record),
+            status: asset.status,
+            ip_address: asset.ip_address || "",
+            mac_address: asset.mac_address || "",
+            firmware: asset.firmware || "",
+            tahun_pembelian: asset.tahun_pembelian || "",
+            support_until: formatDateId(asset.support_until),
+            warranty_until: formatDateId(asset.warranty_until),
+            harga: asset.harga ?? "",
+            office: officeName(record),
+            room: roomName(record),
+            pic: picNames(record),
+            notes: asset.notes || "",
+        };
+
+        const row: Record<string, unknown> = {};
+        const valueMap = values as Record<string, unknown>;
+        for (const key of selectedKeys) {
+            const label = labelByKey.get(key) || key;
+            row[label] = valueMap[key] ?? "";
+        }
+        return row;
+    });
+
+    const worksheet = xlsx.utils.json_to_sheet(rows);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, "Aset");
+    const buffer = xlsx.write(workbook, {
+        bookType: "xlsx",
+        type: "buffer",
+    }) as Buffer;
+    const filename = `aset_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    return { base64: buffer.toString("base64"), filename };
 }
 
 async function createAsset(
@@ -461,4 +541,10 @@ async function importAssets(records: ParsedRecord[]): Promise<ImportResult> {
     return { success, skipped, errors };
 }
 
-export { createAsset, updateAsset, deleteAsset, importAssets };
+export {
+    createAsset,
+    updateAsset,
+    deleteAsset,
+    importAssets,
+    exportAssets,
+};

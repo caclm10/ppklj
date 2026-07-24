@@ -1,14 +1,9 @@
 "use client";
 
-import {
-    startTransition,
-    useActionState,
-    useEffect,
-    useId,
-    useMemo,
-} from "react";
+import { startTransition, useActionState, useEffect, useId } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { MapPinIcon } from "lucide-react";
 import type { RecordModel } from "pocketbase";
 import { toast } from "sonner";
 
@@ -21,14 +16,8 @@ import {
     FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { OfficeRoomPickerDialog } from "@/components/office-room-picker-dialog";
 import { applyFormErrors } from "@/lib/utils";
 import type {
     CreateMutationInput,
@@ -39,6 +28,7 @@ interface AssetMutationFormProps {
     assetId: string;
     offices: RecordModel[];
     rooms: RecordModel[];
+    currentLocation: string;
     onSuccess?: () => void;
 }
 
@@ -46,6 +36,7 @@ function AssetMutationForm({
     assetId,
     offices,
     rooms,
+    currentLocation,
     onSuccess,
 }: AssetMutationFormProps) {
     const router = useRouter();
@@ -70,22 +61,10 @@ function AssetMutationForm({
     });
     const formId = useId();
 
-    const toOfficeId = useWatch({ control: form.control, name: "toOfficeId" });
-    const availableRooms = useMemo(() => {
-        return toOfficeId
-            ? rooms.filter((room) => room.office_id?.includes(toOfficeId))
-            : [];
-    }, [toOfficeId, rooms]);
-
-    useEffect(() => {
-        const currentRoomId = form.getValues("toRoomId");
-        if (
-            currentRoomId &&
-            !availableRooms.some((room) => room.id === currentRoomId)
-        ) {
-            form.setValue("toRoomId", "");
-        }
-    }, [availableRooms, form]);
+    const [toOfficeId, toRoomId] = useWatch({
+        control: form.control,
+        name: ["toOfficeId", "toRoomId"],
+    });
 
     useEffect(() => {
         if (!state) return;
@@ -119,6 +98,16 @@ function AssetMutationForm({
             <FieldGroup>
                 <input type="hidden" {...form.register("assetId")} />
 
+                <div className="flex flex-col gap-2 rounded-md border bg-muted/30 p-3 text-sm">
+                    <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                        Lokasi Saat Ini
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <MapPinIcon className="size-4 text-muted-foreground" />
+                        <span>{currentLocation}</span>
+                    </div>
+                </div>
+
                 <Controller
                     control={form.control}
                     name="date"
@@ -140,98 +129,23 @@ function AssetMutationForm({
                     )}
                 />
 
-                <Controller
-                    control={form.control}
-                    name="toOfficeId"
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>
-                                Kantor Tujuan
-                            </FieldLabel>
-                            <Select
-                                value={field.value}
-                                onValueChange={field.onChange}
-                            >
-                                <SelectTrigger
-                                    id={field.name}
-                                    aria-invalid={fieldState.invalid}
-                                    className="w-full"
-                                >
-                                    <SelectValue placeholder="Pilih kantor tujuan">
-                                        {
-                                            offices.find(
-                                                (o) => o.id === field.value
-                                            )?.nama
-                                        }
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {offices.map((office) => (
-                                        <SelectItem
-                                            key={office.id}
-                                            value={office.id}
-                                        >
-                                            {office.nama}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} />
-                            )}
-                        </Field>
-                    )}
-                />
-
-                <Controller
-                    control={form.control}
-                    name="toRoomId"
-                    render={({ field }) => (
-                        <Field>
-                            <FieldLabel htmlFor={field.name}>
-                                Ruangan Tujuan (opsional)
-                            </FieldLabel>
-                            <Select
-                                value={field.value}
-                                onValueChange={field.onChange}
-                                disabled={!toOfficeId}
-                            >
-                                <SelectTrigger
-                                    id={field.name}
-                                    className="w-full"
-                                >
-                                    <SelectValue
-                                        placeholder={
-                                            toOfficeId
-                                                ? "Pilih ruangan"
-                                                : "Pilih kantor terlebih dahulu"
-                                        }
-                                    >
-                                        {(() => {
-                                            const selected = availableRooms.find(
-                                                (r) => r.id === field.value
-                                            );
-                                            return selected
-                                                ? `${selected.name} (lantai ${selected.floor})`
-                                                : undefined;
-                                        })()}
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="">Tidak ada</SelectItem>
-                                    {availableRooms.map((room) => (
-                                        <SelectItem
-                                            key={room.id}
-                                            value={room.id}
-                                        >
-                                            {room.name} (lantai {room.floor})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </Field>
-                    )}
-                />
+                <Field>
+                    <FieldLabel>Kantor & Ruangan Tujuan</FieldLabel>
+                    <OfficeRoomPickerDialog
+                        offices={offices}
+                        rooms={rooms}
+                        officeId={toOfficeId}
+                        roomId={toRoomId}
+                        onChange={({ officeId, roomId }) => {
+                            form.setValue("toOfficeId", officeId, {
+                                shouldValidate: true,
+                            });
+                            form.setValue("toRoomId", roomId, {
+                                shouldValidate: true,
+                            });
+                        }}
+                    />
+                </Field>
 
                 <Controller
                     control={form.control}

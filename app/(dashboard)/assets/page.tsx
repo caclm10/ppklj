@@ -24,7 +24,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { ImportDialog } from "@/components/import-dialog";
-import { importAssets } from "@/actions/asset";
+import { ExportDialog } from "@/components/export-dialog";
+import { importAssets, exportAssets } from "@/actions/asset";
+import { ASSET_EXPORT_COLUMNS } from "@/lib/asset-export";
 import { requireAuth } from "@/lib/server/pocketbase";
 import { getBadgeVariantByStatus } from "@/lib/utils";
 
@@ -95,6 +97,15 @@ async function AssetsPage({ searchParams }: PageProps) {
                                 hostname: "Hostname",
                             }}
                             onImport={importAssets}
+                        />
+                        <ExportDialog
+                            title="Ekspor Aset"
+                            description="Pilih kolom yang ingin diekspor ke file XLSX."
+                            columns={ASSET_EXPORT_COLUMNS.map((col) => ({
+                                key: col.key,
+                                label: col.label,
+                            }))}
+                            onExport={exportAssets}
                         />
                         <Button
                             type="button"

@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "concurrently \"./pocketbase serve\" \"next dev\"",
         "build": "next build",
-        "start": "next start",
+        "start": "concurrently \"./pocketbase serve\" \"next start\"",
         "lint": "eslint",
         "format": "prettier --write \"**/*.{ts,tsx}\"",
         "typecheck": "tsc --noEmit"

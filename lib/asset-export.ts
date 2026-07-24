@@ -1,0 +1,17 @@
+export const ASSET_EXPORT_COLUMNS = [
+    { key: "hostname", label: "Hostname" },
+    { key: "serial_number", label: "Serial Number" },
+    { key: "device_model", label: "Model Perangkat" },
+    { key: "status", label: "Status" },
+    { key: "ip_address", label: "IP Address" },
+    { key: "mac_address", label: "MAC Address" },
+    { key: "firmware", label: "Firmware" },
+    { key: "tahun_pembelian", label: "Tahun Pembelian" },
+    { key: "support_until", label: "Support Sampai" },
+    { key: "warranty_until", label: "Garansi Sampai" },
+    { key: "harga", label: "Harga" },
+    { key: "office", label: "Kantor" },
+    { key: "room", label: "Ruangan" },
+    { key: "pic", label: "PIC" },
+    { key: "notes", label: "Catatan" },
+] as const;

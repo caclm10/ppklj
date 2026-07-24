@@ -13,6 +13,12 @@ interface PageProps {
     params: Promise<{ id: string }>;
 }
 
+function firstId(value: unknown): string {
+    if (Array.isArray(value) && value.length > 0) return String(value[0]);
+    if (typeof value === "string" && value) return value;
+    return "";
+}
+
 async function AssetMutationPage({ params }: PageProps) {
     const { id } = await params;
     const pb = await requireAuth();
@@ -39,6 +45,18 @@ async function AssetMutationPage({ params }: PageProps) {
         }
         throw error;
     }
+
+    const currentOfficeId = firstId(asset.office_id);
+    const currentRoomId = firstId(asset.room_id);
+    const currentOffice = offices.find((o) => o.id === currentOfficeId);
+    const currentRoom = rooms.find((r) => r.id === currentRoomId);
+    const currentLocation = currentOffice
+        ? `${currentOffice.nama}${
+              currentRoom
+                  ? ` - ${currentRoom.name} (lantai ${currentRoom.floor})`
+                  : " - Tanpa ruangan"
+          }`
+        : "Belum ditugaskan";
 
     return (
         <div className="flex flex-col gap-6">
@@ -70,6 +88,7 @@ async function AssetMutationPage({ params }: PageProps) {
                         assetId={id}
                         offices={offices}
                         rooms={rooms}
+                        currentLocation={currentLocation}
                     />
                 </CardContent>
             </Card>
