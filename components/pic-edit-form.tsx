@@ -3,6 +3,7 @@
 import { startTransition, useActionState, useEffect, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import PhoneInput from "react-phone-number-input/input";
 
 import { updatePic } from "@/actions/pic";
 import { Button } from "@/components/ui/button";
@@ -119,11 +120,15 @@ function PicEditForm({ id, initialData }: PicEditFormProps) {
                                     <FieldLabel htmlFor={field.name}>
                                         Nomor WhatsApp
                                     </FieldLabel>
-                                    <Input
+                                    <PhoneInput 
                                         {...field}
+                                        inputComponent={Input}
                                         id={field.name}
                                         placeholder="Masukkan nomor WhatsApp"
                                         aria-invalid={fieldState.invalid}
+                                        country="ID"
+                                        international
+                                        withCountryCallingCode
                                     />
 
                                     {fieldState.invalid && (

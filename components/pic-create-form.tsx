@@ -2,6 +2,8 @@
 
 import { startTransition, useActionState, useEffect, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import PhoneInput from "react-phone-number-input/input";
 
 import { createPic } from "@/actions/pic";
 import { Button } from "@/components/ui/button";
@@ -22,7 +24,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { applyFormErrors } from "@/lib/utils";
 import type { CreatePicInput, CreatePicResponse } from "@/schemas/pic";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 function PicCreateForm() {
@@ -122,11 +123,15 @@ function PicCreateForm() {
                                     <FieldLabel htmlFor={field.name}>
                                         Nomor WhatsApp
                                     </FieldLabel>
-                                    <Input
+                                    <PhoneInput 
+                                        inputComponent={Input}
                                         {...field}
                                         id={field.name}
                                         placeholder="Masukkan nomor WhatsApp"
                                         aria-invalid={fieldState.invalid}
+                                        country="ID"
+                                        international
+                                        withCountryCallingCode
                                     />
 
                                     {fieldState.invalid && (

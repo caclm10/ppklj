@@ -30,7 +30,7 @@ async function createPic(payload: CreatePicInput): Promise<CreatePicResponse> {
 
         const _payload = {
             name: validation.data.name,
-            whatsapp_number: validation.data.whatsappNumber,
+            whatsapp_number: normalizePhone(validation.data.whatsappNumber),
             nip: validation.data.nip,
             email: validation.data.email,
             surat_keputusan: validation.data.suratKeputusan,
@@ -82,7 +82,7 @@ async function updatePic(
 
         const _payload = {
             name: validation.data.name,
-            whatsapp_number: validation.data.whatsappNumber,
+            whatsapp_number: normalizePhone(validation.data.whatsappNumber),
             nip: validation.data.nip,
             email: validation.data.email,
             surat_keputusan: validation.data.suratKeputusan,
@@ -111,6 +111,13 @@ async function updatePic(
             message: "Terjadi kesalahan saat memperbarui PIC.",
         };
     }
+}
+
+function normalizePhone(value: string | undefined): string | undefined {
+    if (!value) return value;
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    return trimmed.replace(/^\+/, "");
 }
 
 async function deletePic(
@@ -166,7 +173,7 @@ async function importPics(records: ParsedRecord[]): Promise<ImportResult> {
         const whatsapp = getString(record.data, "nomor whatsapp");
         const payload = {
             name,
-            whatsapp_number: whatsapp || "-",
+            whatsapp_number: normalizePhone(whatsapp) || "-",
             nip: getString(record.data, "nip") || undefined,
             email: getString(record.data, "email") || undefined,
             surat_keputusan:
