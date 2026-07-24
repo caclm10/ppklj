@@ -142,10 +142,10 @@ async function PICPage({ searchParams }: PageProps) {
                                             Nama PIC
                                         </TableHead>
                                         <TableHead className="font-semibold">
-                                            NIP
+                                            WhatsApp
                                         </TableHead>
                                         <TableHead className="font-semibold">
-                                            WhatsApp
+                                            NIP
                                         </TableHead>
                                         <TableHead className="font-semibold">
                                             Email
@@ -162,12 +162,12 @@ async function PICPage({ searchParams }: PageProps) {
                                             <TableCell className="font-medium">
                                                 {pic.name}
                                             </TableCell>
-                                            <TableCell className="font-mono text-xs">
-                                                {pic.nip || "-"}
-                                            </TableCell>
                                             <TableCell>
                                                 {pic.whatsapp_number}
                                             </TableCell>
+                                            <TableCell className="font-mono text-xs">
+                                                {pic.nip || "-"}
+                                            </TableCell>                                            
                                             <TableCell>
                                                 {pic.email || "-"}
                                             </TableCell>

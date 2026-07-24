@@ -23,9 +23,17 @@ async function PICEditPage({ params }: PageProps) {
         throw error;
     }
 
+    const rawPhone = pic.whatsapp_number as string | undefined;
+    const phoneValue =
+        rawPhone && rawPhone !== "-"
+            ? rawPhone.startsWith("+")
+                ? rawPhone
+                : `+${rawPhone}`
+            : "";
+
     const initialData = {
         name: pic.name,
-        whatsappNumber: pic.whatsapp_number,
+        whatsappNumber: phoneValue,
         nip: pic.nip || "",
         email: pic.email || "",
         suratKeputusan: pic.surat_keputusan || "",
